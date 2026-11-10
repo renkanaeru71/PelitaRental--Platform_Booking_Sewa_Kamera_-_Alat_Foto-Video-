@@ -1,0 +1,56 @@
+:root {
+  --bs-primary: #F97316;
+  --bs-primary-rgb: 249, 115, 22;
+  --bs-font-sans-serif: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  background: #F1F5F9;
+}
+
+[data-bs-theme="dark"] body {
+  background: #0B1220;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0F172A, #1E293B);
+  color: #fff;
+}
+
+.hero p {
+  color: #CBD5E1;
+}
+
+.kartu-alat {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.kartu-alat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+#filter .btn.aktif {
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.35);
+}
+
+/* Scroll halus ke anchor, dan tidak tertutup navbar sticky */
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Hormati pengaturan "kurangi animasi" di perangkat */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.card-auth {
+  max-width: 420px;
+  margin: 60px auto;
+}
