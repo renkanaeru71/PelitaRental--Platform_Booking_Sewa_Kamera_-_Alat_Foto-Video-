@@ -164,9 +164,8 @@ $cookie_user = $_COOKIE['username'] ?? '';
           <button type="submit" class="btn btn-primary btn-auth">Login</button>
 
           <div class="text-muted small mt-3 p-2 bg-light rounded">
-            <strong>Akun bawaan database:</strong><br>
-            • Admin: <code>admin@gmail.com</code> / <code>admin123</code><br>
-            • User: <code>kaka@gmail.com</code> / <code>user123</code>
+            <strong>Akun demo admin:</strong><br>
+            • Admin: <code>admin@gmail.com</code> / <code>admin123</code>
           </div>
         </form>
       </div>
