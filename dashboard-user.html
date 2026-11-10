@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Penyewa - PelitaRental</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">PelitaRental</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Buka menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="menu">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="dashboard-user.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#katalog">Katalog</a></li>
+          <li class="nav-item"><a class="nav-link" href="profil.html">Profil</a></li>
+        </ul>
+        <div class="d-flex flex-column flex-lg-row gap-2 pt-2 pt-lg-0">
+          <button id="darkToggle" class="btn btn-outline-secondary btn-sm" type="button">Mode Gelap</button>
+          <a href="login.html" class="btn btn-outline-danger btn-sm">Keluar</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+
+    <div class="mb-4">
+      <h1 class="h3 fw-bold">Selamat datang, Ahmad</h1>
+      <p class="text-muted mb-0">Berikut ringkasan sewa kamu di PelitaRental.</p>
+    </div>
+
+    <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span><strong>Booking #PR-2611-006</strong> menunggu pembayaran. Bayar di toko dalam 24 jam agar tidak dibatalkan otomatis.</span>
+    </div>
+
+    <!-- Ringkasan -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Booking Aktif</p>
+            <h2 class="h4 fw-bold mb-0" id="statAktif">0</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Menunggu Pembayaran</p>
+            <h2 class="h4 fw-bold mb-0" id="statBayar">0</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Sedang Disewa</p>
+            <h2 class="h4 fw-bold mb-0" id="statSewa">0</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Total Tagihan Aktif</p>
+            <h2 class="h4 fw-bold mb-0" id="statTagihan">Rp 0</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daftar pesanan -->
+    <div class="card mb-4">
+      <div class="card-header bg-body d-flex justify-content-between align-items-center">
+        <strong>Pesanan Saya</strong>
+        <a href="#katalog" class="btn btn-primary btn-sm">Sewa Alat Lagi</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Kode Booking</th>
+              <th>Alat</th>
+              <th>Periode</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="daftarPesanan"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tracking -->
+    <div class="card" id="kartuTracking">
+      <div class="card-header bg-body">
+        <strong>Detail Tracking</strong>
+      </div>
+      <div class="card-body" id="isiTracking">
+        <p class="text-muted mb-0">Pilih pesanan di tabel untuk melihat progresnya.</p>
+      </div>
+    </div>
+
+    <!-- Katalog -->
+<section id="katalog" class="mt-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h2 class="h4 fw-bold mb-1">Katalog Alat</h2>
+      <p class="text-muted mb-0">Pilih alat, lalu tambahkan ke keranjang.</p>
+    </div>
+    <a href="keranjang.html" class="btn btn-outline-primary btn-sm">Lihat Keranjang</a>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3" id="filterDashboard">
+    <button class="btn btn-sm btn-primary aktif" data-kategori="Semua">Semua</button>
+    <button class="btn btn-sm btn-outline-primary" data-kategori="Kamera">Kamera</button>
+    <button class="btn btn-sm btn-outline-primary" data-kategori="Lensa">Lensa</button>
+    <button class="btn btn-sm btn-outline-primary" data-kategori="Lighting">Lighting</button>
+    <button class="btn btn-sm btn-outline-primary" data-kategori="Aksesori">Aksesori</button>
+  </div>
+
+  <div class="row g-3" id="katalogDashboard"></div>
+</section>
+
+  </main>
+
+  <footer class="text-center text-muted py-3 border-top">
+    PelitaRental &middot; Yogyakarta
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/dashboard-user.js"></script>
+</body>
+</html>

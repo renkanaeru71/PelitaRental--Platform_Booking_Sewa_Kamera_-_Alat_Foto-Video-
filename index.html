@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PelitaRental - Sewa Kamera & Perlengkapan</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">PelitaRental</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Buka menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="menu">
+        <div class="ms-auto d-flex flex-column flex-lg-row gap-2 pt-3 pt-lg-0">
+          <button id="darkToggle" class="btn btn-outline-secondary btn-sm" type="button">Mode Gelap</button>
+          <a href="login.html" class="btn btn-outline-primary btn-sm">Keranjang</a>
+          <a href="login.html" class="btn btn-primary btn-sm">Login</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero py-5">
+    <div class="container">
+      <h1 class="fw-bold">Sewa Kamera & Peralatan Foto/Video</h1>
+      <p class="mb-4">Cek alat yang tersedia. Login dulu untuk memesan.</p>
+      <div class="row">
+        <div class="col-md-8 col-lg-6">
+          <input id="cari" type="search" class="form-control form-control-lg" placeholder="Cari alat, misalnya Sony" aria-label="Cari alat">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container py-4" id="katalog">
+    <div class="d-flex flex-wrap gap-2 mb-4" id="filter">
+      <button class="btn btn-sm btn-primary aktif" data-kategori="Semua">Semua</button>
+      <button class="btn btn-sm btn-outline-primary" data-kategori="Kamera">Kamera</button>
+      <button class="btn btn-sm btn-outline-primary" data-kategori="Lensa">Lensa</button>
+      <button class="btn btn-sm btn-outline-primary" data-kategori="Lighting">Lighting</button>
+      <button class="btn btn-sm btn-outline-primary" data-kategori="Aksesori">Aksesori</button>
+    </div>
+
+    <div class="row g-3" id="daftar-alat"></div>
+    <p id="kosong" class="text-muted d-none mt-3">Alat tidak ditemukan.</p>
+  </main>
+
+  <footer class="text-center text-muted py-3 border-top">
+    PelitaRental &middot; Yogyakarta
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
