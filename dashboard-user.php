@@ -8,9 +8,34 @@ require_once 'auth.php';
 cek_login();
 
 // Ambil info user dari session / database
-$user_id   = $_SESSION['user_id'] ?? null;
-$user_name = $_SESSION['nama'] ?? 'Penyewa';
-$user_role = $_SESSION['role'] ?? 'penyewa';
+$user_id    = (int)($_SESSION['user_id'] ?? 0);
+$user_name  = $_SESSION['nama'] ?? 'Penyewa';
+$user_email = $_SESSION['email'] ?? '';
+$user_phone = $_SESSION['no_hp'] ?? '';
+$user_role  = $_SESSION['role'] ?? 'penyewa';
+
+if ($user_id > 0) {
+    $q_user = mysqli_query($koneksi, "SELECT * FROM user WHERE ID_user = $user_id LIMIT 1");
+    if ($q_user && ($u_row = mysqli_fetch_assoc($q_user))) {
+        $user_name  = $u_row['Nama'] ?? $u_row['nama'] ?? $user_name;
+        $user_email = $u_row['Email'] ?? $u_row['email'] ?? $user_email;
+        $user_phone = $u_row['no_hp'] ?? $user_phone;
+        $user_role  = $u_row['Role'] ?? $u_row['role'] ?? $user_role;
+        $_SESSION['nama']  = $user_name;
+        $_SESSION['email'] = $user_email;
+        $_SESSION['no_hp'] = $user_phone;
+        $_SESSION['role']  = $user_role;
+    }
+}
+
+// Inisial untuk avatar
+$u_parts = preg_split('/\s+/', trim($user_name));
+if ($u_parts && count($u_parts) >= 2) {
+    $user_initials = mb_substr($u_parts[0], 0, 1) . mb_substr($u_parts[1], 0, 1);
+} else {
+    $user_initials = mb_substr($user_name, 0, 2);
+}
+$user_initials = strtoupper($user_initials);
 
 // Query kategori dari database
 $categories = [];
@@ -241,7 +266,7 @@ function rupiah(int $value): string
             <span class="header-divider"></span>
             <div class="dropdown">
                 <button class="user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu akun">
-                    <span class="avatar" id="header-initials"><?= strtoupper(substr($user_name, 0, 2)) ?></span>
+                    <span class="avatar" id="header-initials"><?= escape($user_initials) ?></span>
                     <span class="user-copy">
                         <strong id="header-name"><?= escape($user_name) ?></strong>
                         <small><?= ucfirst(escape($user_role)) ?></small>
@@ -249,7 +274,10 @@ function rupiah(int $value): string
                     <?= icon('chevron', 'user-chevron') ?>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><span class="dropdown-header">Akun Penyewa</span></li>
+                    <li><span class="dropdown-header">Akun <?= $user_role === 'admin' ? 'Admin' : 'Penyewa' ?></span></li>
+                    <?php if ($user_role === 'admin'): ?>
+                        <li><a class="dropdown-item text-primary fw-semibold" href="dashboard-admin.php">Panel Admin</a></li>
+                    <?php endif; ?>
                     <li><button class="dropdown-item" type="button" data-view="profile">Profil saya</button></li>
                     <li><button class="dropdown-item" type="button" data-view="orders">Pesanan saya</button></li>
                     <li><hr class="dropdown-divider"></li>
@@ -381,31 +409,37 @@ function rupiah(int $value): string
         <section id="view-profile" class="page-view" hidden aria-labelledby="profile-heading">
             <div class="page-heading">
                 <h1 id="profile-heading">Profil Saya</h1>
-                <p>Kelola data pribadi penyewa untuk verifikasi identitas dan jaminan.</p>
+                <p>Kelola data pribadi untuk verifikasi identitas dan operasional sewa.</p>
             </div>
-            <form class="profile-card" id="profile-form">
+            <form class="profile-card" id="profile-form" action="proses_profil.php" method="POST">
                 <div class="profile-intro">
-                    <span class="avatar avatar-large" id="profile-initials">AR</span>
+                    <span class="avatar avatar-large" id="profile-initials"><?= escape($user_initials) ?></span>
                     <div>
-                        <h2 class="mb-1">Ahmad Rizki</h2>
-                        <p class="text-muted mb-0">Akun Penyewa · Mahasiswa Yogyakarta</p>
+                        <h2 class="mb-1" id="profile-display-name"><?= escape($user_name) ?></h2>
+                        <p class="text-muted mb-0" id="profile-role-badge">
+                            <?= $user_role === 'admin' ? 'Akun Admin · Petugas Toko' : 'Akun Penyewa · Mahasiswa Yogyakarta' ?>
+                        </p>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="profile-name">Nama Lengkap</label>
-                    <input class="form-control" id="profile-name" name="name" required minlength="2" value="Ahmad Rizki">
+                    <input class="form-control" id="profile-name" name="name" required minlength="2" value="<?= escape($user_name) ?>">
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="profile-email">Alamat Email</label>
-                    <input class="form-control" id="profile-email" name="email" type="email" required value="ahmad.rizki@example.com">
+                    <input class="form-control" id="profile-email" name="email" type="email" required value="<?= escape($user_email) ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="profile-phone">Nomor HP / WhatsApp</label>
+                    <input class="form-control" id="profile-phone" name="phone" type="tel" value="<?= escape($user_phone) ?>" placeholder="Contoh: 081234567890">
                 </div>
                 <div class="mb-4">
-                    <label class="form-label" for="profile-phone">Nomor HP / WhatsApp</label>
-                    <input class="form-control" id="profile-phone" name="phone" type="tel" value="081234567890">
+                    <label class="form-label" for="profile-password">Password Baru (opsional)</label>
+                    <input class="form-control" id="profile-password" name="password" type="password" minlength="6" placeholder="Kosongkan jika tidak ingin mengubah password">
                 </div>
                 <p class="text-muted small mb-3">Pastikan nama sesuai dengan kartu identitas (KTP/KTM) yang akan ditinggalkan sebagai jaminan di toko.</p>
-                <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
-                <p class="profile-feedback text-success mt-2" id="profile-feedback" role="status"></p>
+                <button class="btn btn-primary" type="submit" id="btn-save-profile">Simpan Perubahan</button>
+                <p class="profile-feedback mt-2" id="profile-feedback" role="status"></p>
             </form>
         </section>
 

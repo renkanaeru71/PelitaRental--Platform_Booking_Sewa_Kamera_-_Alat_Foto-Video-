@@ -323,6 +323,73 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     updateTheme();
 
+    // 9. Form Profil Admin
+    document.getElementById('profile-form-admin')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nameInput = document.getElementById('admin-profile-name');
+        const emailInput = document.getElementById('admin-profile-email');
+        const phoneInput = document.getElementById('admin-profile-phone');
+        const passInput = document.getElementById('admin-profile-password');
+        const feedback = document.getElementById('admin-profile-feedback');
+        const submitBtn = document.getElementById('btn-save-admin-profile');
+
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        const password = passInput ? passInput.value : '';
+
+        if (name.length < 2) {
+            alert('Nama minimal 2 karakter.');
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+        }
+
+        try {
+            const res = await fetch('proses_profil.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const initials = data.data?.initials || name.slice(0, 2).toUpperCase();
+                const headerName = document.getElementById('admin-header-name');
+                if (headerName) headerName.textContent = name;
+                const headerInitials = document.getElementById('admin-header-initials');
+                if (headerInitials) headerInitials.textContent = initials;
+                const profileInitials = document.getElementById('admin-profile-initials');
+                if (profileInitials) profileInitials.textContent = initials;
+                const profileDispName = document.getElementById('admin-profile-display-name');
+                if (profileDispName) profileDispName.textContent = name;
+                if (passInput) passInput.value = '';
+
+                if (feedback) {
+                    feedback.className = 'profile-feedback text-success mt-2';
+                    feedback.textContent = data.message || 'Profil admin berhasil diperbarui.';
+                }
+                notify(data.message || 'Profil admin berhasil diperbarui.');
+            } else {
+                if (feedback) {
+                    feedback.className = 'profile-feedback text-danger mt-2';
+                    feedback.textContent = data.message || 'Gagal menyimpan profil.';
+                }
+                alert(data.message || 'Gagal menyimpan profil.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan koneksi server saat menyimpan profil admin.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Perubahan';
+            }
+        }
+    });
+
     // Inisialisasi awal
     showView('dashboard');
 });

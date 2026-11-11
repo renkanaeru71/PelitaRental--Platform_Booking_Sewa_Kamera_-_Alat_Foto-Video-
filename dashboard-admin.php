@@ -7,7 +7,33 @@ require_once 'auth.php';
 // Pastikan hanya role admin yang bisa akses
 cek_admin();
 
-$admin_nama = $_SESSION['nama'] ?? 'Admin Toko';
+$admin_id    = (int)($_SESSION['user_id'] ?? 0);
+$admin_nama  = $_SESSION['nama'] ?? 'Admin Toko';
+$admin_email = $_SESSION['email'] ?? '';
+$admin_phone = $_SESSION['no_hp'] ?? '';
+$admin_role  = $_SESSION['role'] ?? 'admin';
+
+if ($admin_id > 0) {
+    $q_adm = mysqli_query($koneksi, "SELECT * FROM user WHERE ID_user = $admin_id LIMIT 1");
+    if ($q_adm && ($adm_row = mysqli_fetch_assoc($q_adm))) {
+        $admin_nama  = $adm_row['Nama'] ?? $adm_row['nama'] ?? $admin_nama;
+        $admin_email = $adm_row['Email'] ?? $adm_row['email'] ?? $admin_email;
+        $admin_phone = $adm_row['no_hp'] ?? $admin_phone;
+        $admin_role  = $adm_row['Role'] ?? $adm_row['role'] ?? $admin_role;
+        $_SESSION['nama']  = $admin_nama;
+        $_SESSION['email'] = $admin_email;
+        $_SESSION['no_hp'] = $admin_phone;
+    }
+}
+
+// Inisial avatar admin
+$adm_parts = preg_split('/\s+/', trim($admin_nama));
+if ($adm_parts && count($adm_parts) >= 2) {
+    $admin_initials = mb_substr($adm_parts[0], 0, 1) . mb_substr($adm_parts[1], 0, 1);
+} else {
+    $admin_initials = mb_substr($admin_nama, 0, 2);
+}
+$admin_initials = strtoupper($admin_initials);
 
 // Ambil kategori dari database
 $list_kategori = [];
@@ -122,6 +148,7 @@ function icon(string $name, string $class = ''): string
     <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
     <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
     <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+    <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M18 5h3m-3 6h3m-3 6h3"/></symbol>
 </svg>
 
 <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -152,6 +179,9 @@ function icon(string $name, string $class = ''): string
         <button class="nav-item" type="button" data-view="laporan">
             <?= icon('orders') ?><span>Laporan Transaksi</span>
         </button>
+        <button class="nav-item" type="button" data-view="profile">
+            <?= icon('profile') ?><span>Profil Saya</span>
+        </button>
     </nav>
     <button class="sidebar-close icon-button d-lg-none" type="button" data-bs-dismiss="offcanvas" data-bs-target="#sidebar">
         <?= icon('close') ?>
@@ -175,15 +205,18 @@ function icon(string $name, string $class = ''): string
             <span class="header-divider"></span>
             <div class="dropdown">
                 <button class="user-menu" type="button" data-bs-toggle="dropdown">
-                    <span class="avatar admin-avatar"><?= strtoupper(substr($admin_nama, 0, 2)) ?></span>
+                    <span class="avatar admin-avatar" id="admin-header-initials"><?= escape($admin_initials) ?></span>
                     <span class="user-copy">
-                        <strong><?= escape($admin_nama) ?></strong>
+                        <strong id="admin-header-name"><?= escape($admin_nama) ?></strong>
                         <small>Petugas Pengelola</small>
                     </span>
                     <?= icon('chevron', 'user-chevron') ?>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-header">Akses Pengelola</span></li>
+                    <li><button class="dropdown-item" type="button" data-view="profile">Profil saya</button></li>
+                    <li><a class="dropdown-item text-primary fw-semibold" href="dashboard-user.php">Lihat Toko (Katalog)</a></li>
+                    <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="logout.php">Keluar</a></li>
                 </ul>
             </div>
@@ -399,6 +432,41 @@ function icon(string $name, string $class = ''): string
                     </table>
                 </div>
             </div>
+        </section>
+
+        <!-- 6. VIEW PROFIL ADMIN -->
+        <section id="view-profile" class="page-view" hidden>
+            <div class="page-heading">
+                <h1>Profil Petugas Pengelola</h1>
+                <p>Kelola data akun administrator dan keamanan login sistem.</p>
+            </div>
+            <form class="profile-card" id="profile-form-admin" action="proses_profil.php" method="POST">
+                <div class="profile-intro">
+                    <span class="avatar avatar-large admin-avatar" id="admin-profile-initials"><?= escape($admin_initials) ?></span>
+                    <div>
+                        <h2 class="mb-1" id="admin-profile-display-name"><?= escape($admin_nama) ?></h2>
+                        <p class="text-muted mb-0">Akun Administrator · Petugas Pengelola Toko PelitaRental</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="admin-profile-name">Nama Petugas</label>
+                    <input class="form-control" id="admin-profile-name" name="name" required minlength="2" value="<?= escape($admin_nama) ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="admin-profile-email">Alamat Email</label>
+                    <input class="form-control" id="admin-profile-email" name="email" type="email" required value="<?= escape($admin_email) ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="admin-profile-phone">Nomor HP / WhatsApp</label>
+                    <input class="form-control" id="admin-profile-phone" name="phone" type="tel" value="<?= escape($admin_phone) ?>" placeholder="Contoh: 081234567890">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="admin-profile-password">Password Baru (opsional)</label>
+                    <input class="form-control" id="admin-profile-password" name="password" type="password" minlength="6" placeholder="Kosongkan jika tidak ingin mengubah password">
+                </div>
+                <button class="btn btn-primary" type="submit" id="btn-save-admin-profile">Simpan Perubahan</button>
+                <p class="profile-feedback mt-2" id="admin-profile-feedback" role="status"></p>
+            </form>
         </section>
 
         <footer class="footer">

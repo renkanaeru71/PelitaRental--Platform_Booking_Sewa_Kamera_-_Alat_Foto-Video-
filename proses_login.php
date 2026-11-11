@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['nama']    = $db_nama;
             $_SESSION['email']   = $db_email;
             $_SESSION['role']    = $db_role;
+            $_SESSION['no_hp']   = $user['no_hp'] ?? '';
 
             // Cookie ingat username
             if ($ingat) {

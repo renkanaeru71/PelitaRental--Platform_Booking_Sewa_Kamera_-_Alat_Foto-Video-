@@ -474,19 +474,72 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // 12. Form Profil
-    document.getElementById('profile-form')?.addEventListener('submit', e => {
+    document.getElementById('profile-form')?.addEventListener('submit', async e => {
         e.preventDefault();
         const nameInput = document.getElementById('profile-name');
-        const name = nameInput.value.trim();
-        if (name.length < 2) return;
+        const emailInput = document.getElementById('profile-email');
+        const phoneInput = document.getElementById('profile-phone');
+        const passInput = document.getElementById('profile-password');
+        const feedback = document.getElementById('profile-feedback');
+        const submitBtn = document.getElementById('btn-save-profile');
 
-        const initials = name.split(/\s+/).slice(0, 2).map(w => Array.from(w)[0]).join('').toUpperCase();
-        document.getElementById('header-name').textContent = name;
-        document.getElementById('welcome-name').textContent = name.split(/\s+/)[0];
-        document.getElementById('header-initials').textContent = initials;
-        document.getElementById('profile-initials').textContent = initials;
-        document.getElementById('profile-feedback').textContent = 'Profil pratinjau berhasil disimpan.';
-        notify('Profil berhasil diperbarui.');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        const password = passInput ? passInput.value : '';
+
+        if (name.length < 2) {
+            alert('Nama minimal 2 karakter.');
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+        }
+
+        try {
+            const res = await fetch('proses_profil.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const initials = data.data?.initials || name.slice(0, 2).toUpperCase();
+                const headerName = document.getElementById('header-name');
+                if (headerName) headerName.textContent = name;
+                const welcomeName = document.getElementById('welcome-name');
+                if (welcomeName) welcomeName.textContent = name.split(/\s+/)[0];
+                const headerInitials = document.getElementById('header-initials');
+                if (headerInitials) headerInitials.textContent = initials;
+                const profileInitials = document.getElementById('profile-initials');
+                if (profileInitials) profileInitials.textContent = initials;
+                const profileDispName = document.getElementById('profile-display-name');
+                if (profileDispName) profileDispName.textContent = name;
+                if (passInput) passInput.value = '';
+
+                if (feedback) {
+                    feedback.className = 'profile-feedback text-success mt-2';
+                    feedback.textContent = data.message || 'Profil berhasil diperbarui.';
+                }
+                notify(data.message || 'Profil berhasil diperbarui.');
+            } else {
+                if (feedback) {
+                    feedback.className = 'profile-feedback text-danger mt-2';
+                    feedback.textContent = data.message || 'Gagal menyimpan profil.';
+                }
+                alert(data.message || 'Gagal menyimpan profil.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan koneksi server saat menyimpan profil.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Simpan Perubahan';
+            }
+        }
     });
 
     // 13. Submit Booking ke Database & Cetak Lembar Bukti
