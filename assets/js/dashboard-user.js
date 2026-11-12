@@ -150,15 +150,23 @@ window.addEventListener('DOMContentLoaded', () => {
         showView('home');
     }
 
-    document.querySelectorAll('[data-category]').forEach(btn => {
+    // Filter berdasarkan tab kategori di toolbar katalog
+    document.querySelectorAll('.category-tabs [data-category]').forEach(btn => {
         btn.addEventListener('click', () => {
             selectedCategory = btn.dataset.category;
             if (search) search.value = '';
             filterProducts();
             showView('home');
-            if (btn.classList.contains('category-nav')) {
-                document.getElementById('products-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+        });
+    });
+
+    // Navigasi link ke section katalog (#katalog) dari keranjang kosong
+    document.querySelectorAll('a[href="#katalog"]').forEach(link => {
+        link.addEventListener('click', () => {
+            showView('home');
+            setTimeout(() => {
+                document.getElementById('katalog')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         });
     });
 

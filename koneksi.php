@@ -5,7 +5,7 @@ $user = 'root';
 $pass = '';
 $db   = 'pelitarental';
 
-$koneksi = new mysqli('localhost', 'root', '', 'projek_pemweb');
+$koneksi = new mysqli($host, $user, $pass, $db);
 
 if (!$koneksi || $koneksi->connect_error) {
     die("Koneksi database gagal: " . ($koneksi->connect_error ?? mysqli_connect_error()));

@@ -4,6 +4,21 @@
    grid statistik, katalog produk, keranjang, dan tabel responsif.
    ========================================================================== */
 
+/* 1. Import Fallback Font Google (Inter) & Definisi Font Lokal SF Pro Text Semibold */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@font-face {
+    font-family: 'SF Pro Text';
+    src: url('../font/sf-pro-text-semibold-opentype_ufonts.com.otf') format('opentype'),
+         url('../fonts/SFProText-Semibold.woff2') format('woff2'),
+         url('../fonts/SFProText-Semibold.woff') format('woff'),
+         url('../fonts/SFProText-Semibold.ttf') format('truetype'),
+         url('../fonts/SFProText-Semibold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root,
 [data-bs-theme="light"] {
     --page-bg: #f8f9fb;
@@ -19,7 +34,8 @@
     --sidebar-width: 250px;
     --header-height: 72px;
 
-    --bs-body-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Pengaturan font utama SF Pro Text Semibold dengan fallback Inter */
+    --bs-body-font-family: 'SF Pro Text', 'Inter', sans-serif;
     --bs-body-color: var(--text);
     --bs-body-bg: var(--page-bg);
     --bs-border-color: var(--line);
@@ -48,8 +64,9 @@
 * { box-sizing: border-box; }
 body {
     margin: 0;
+    font-family: 'SF Pro Text', 'Inter', sans-serif;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
 }
 button, input, select, textarea { font: inherit; }

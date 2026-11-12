@@ -30,7 +30,8 @@ $cookie_user = $_COOKIE['username'] ?? '';
 
   <style>
     body {
-      background-color: #f0f4f8;
+      background: url('assets/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -176,7 +177,7 @@ $cookie_user = $_COOKIE['username'] ?? '';
         <form id="daftarForm" action="proses_register.php" method="POST">
           <div class="mb-3">
             <label for="regNama" class="form-label">Nama Lengkap</label>
-            <input type="text" name="nama" class="form-control" id="regNama" placeholder="Ahmad Rizki" required>
+            <input type="text" name="nama" class="form-control" id="regNama" placeholder="Nama kamu" required>
           </div>
 
           <div class="mb-3">
@@ -186,7 +187,7 @@ $cookie_user = $_COOKIE['username'] ?? '';
 
           <div class="mb-3">
             <label for="regHp" class="form-label">No. HP</label>
-            <input type="tel" name="no_hp" class="form-control" id="regHp" placeholder="081234567890" required>
+            <input type="tel" name="no_hp" class="form-control" id="regHp" placeholder="08xxxxxxxxxx" required>
           </div>
 
           <div class="mb-3">

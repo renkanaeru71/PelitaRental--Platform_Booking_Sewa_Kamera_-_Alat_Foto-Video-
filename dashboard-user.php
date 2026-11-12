@@ -172,6 +172,10 @@ function rupiah(int $value): string
 
     <!-- Bootstrap 5 CSS CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- Font Fallback Inter (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Style PelitaRental -->
     <link rel="stylesheet" href="assets/css/style.css">
     <script id="product-data" type="application/json"><?= json_encode($products, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -219,6 +223,7 @@ function rupiah(int $value): string
     </a>
     <nav class="sidebar-nav">
         <p class="nav-label">Menu Utama</p>
+        <!-- Tombol navigasi utama (single-page view) -->
         <button class="nav-item is-active" type="button" data-view="home" aria-current="page">
             <?= icon('grid') ?><span>Beranda &amp; Katalog</span><span class="active-dot"></span>
         </button>
@@ -231,13 +236,6 @@ function rupiah(int $value): string
         <button class="nav-item" type="button" data-view="profile">
             <?= icon('profile') ?><span>Profil Saya</span>
         </button>
-
-        <p class="nav-label category-nav-label">Kategori Alat</p>
-        <?php foreach ($categories as $category): ?>
-            <button class="nav-item category-nav" type="button" data-category="<?= escape($category['id']) ?>">
-                <?= icon($category['icon']) ?><span><?= escape($category['name']) ?></span>
-            </button>
-        <?php endforeach; ?>
     </nav>
     <button class="sidebar-close icon-button d-lg-none" type="button" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Tutup menu">
         <?= icon('close') ?>
@@ -324,8 +322,8 @@ function rupiah(int $value): string
                 </article>
             </div>
 
-            <!-- Katalog Peralatan -->
-            <section class="products-section" aria-labelledby="products-heading">
+            <!-- Section Katalog Peralatan -->
+            <section id="katalog" class="products-section" aria-labelledby="products-heading">
                 <div class="section-heading">
                     <div class="section-title">
                         <h2 id="products-heading">Katalog Peralatan</h2>
@@ -503,7 +501,8 @@ function rupiah(int $value): string
             <span class="empty-icon"><?= icon('cart') ?></span>
             <h3>Keranjang masih kosong</h3>
             <p>Pilih perlengkapan kamera dan gear yang ingin disewa.</p>
-            <button class="btn btn-primary" type="button" data-bs-dismiss="offcanvas">Jelajahi Katalog</button>
+            <!-- Tombol ke section katalog dengan href="#katalog" -->
+            <a href="#katalog" class="btn btn-primary" data-bs-dismiss="offcanvas">Jelajahi Katalog</a>
         </div>
         <div id="cart-content" hidden>
             <div id="cart-items"></div>
