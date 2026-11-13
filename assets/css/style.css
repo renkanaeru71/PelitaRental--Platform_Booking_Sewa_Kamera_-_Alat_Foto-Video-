@@ -860,7 +860,6 @@ button:focus-visible, a:focus-visible {
 
 /* Timeline List */
 .timeline-item-list {
-    list-group-flush: true;
     margin-bottom: 18px;
 }
 .timeline-step {
