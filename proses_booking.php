@@ -1,143 +1,186 @@
 <?php
 session_start();
-require_once 'koneksi.php';
-require_once 'auth.php';
-cek_login();
+include "koneksi.php";
+include "cek_login.php";
+include "kadaluarsa.php";
 
-header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Metode request tidak valid.']);
-    exit;
+$tanggal_mulai = "";
+if (isset($_POST["tanggal_mulai"])) {
+  $tanggal_mulai = trim($_POST["tanggal_mulai"]);
+}
+$tanggal_selesai = "";
+if (isset($_POST["tanggal_selesai"])) {
+  $tanggal_selesai = trim($_POST["tanggal_selesai"]);
+}
+$jenis_jaminan = "";
+if (isset($_POST["jenis_jaminan"])) {
+  $jenis_jaminan = trim($_POST["jenis_jaminan"]);
 }
 
-$user_id = $_SESSION['user_id'] ?? 0;
-if (!$user_id) {
-    echo json_encode(['success' => false, 'message' => 'Sesi login tidak valid.']);
-    exit;
+// kembali ke keranjang dengan pesan kalau ada yang tidak valid
+function kembali_keranjang($pesan) {
+  $_SESSION["pesan"] = $pesan;
+  $_SESSION["pesan_tipe"] = "danger";
+  header("Location: keranjang.php");
+  exit();
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
-if (!$input) {
-    echo json_encode(['success' => false, 'message' => 'Data booking kosong.']);
-    exit;
+if (!isset($_SESSION["keranjang"]) || count($_SESSION["keranjang"]) == 0) {
+  $_SESSION["pesan"] = "Keranjang sewa masih kosong.";
+  $_SESSION["pesan_tipe"] = "danger";
+  header("Location: index.php");
+  exit();
 }
 
-$start_date = trim($input['start_date'] ?? '');
-$end_date   = trim($input['end_date'] ?? '');
-$jaminan    = trim($input['jaminan'] ?? 'KTM Asli');
-$items      = $input['items'] ?? []; // Array [{id: 1, qty: 1}, ...]
+$hari_ini = date("Y-m-d");
 
-if (empty($start_date) || empty($end_date) || empty($items)) {
-    echo json_encode(['success' => false, 'message' => 'Tanggal dan barang sewa wajib diisi.']);
-    exit;
+// validasi tanggal: mulai tidak sebelum hari ini, selesai tidak sebelum mulai
+if ($tanggal_mulai == "" || $tanggal_selesai == "") {
+  kembali_keranjang("Tanggal mulai dan tanggal selesai wajib diisi.");
 }
 
-// Hitung durasi sesuai aturan PRD: (selesai - mulai) + 1 hari
-$d1 = new DateTime($start_date);
-$d2 = new DateTime($end_date);
-if ($d2 < $d1) {
-    echo json_encode(['success' => false, 'message' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.']);
-    exit;
+$waktu_mulai = strtotime($tanggal_mulai);
+$waktu_selesai = strtotime($tanggal_selesai);
+
+if ($waktu_mulai == false || $waktu_selesai == false) {
+  kembali_keranjang("Format tanggal tidak valid.");
 }
-$diff = $d1->diff($d2);
-$durasi = $diff->days + 1;
 
-// Mulai Database Transaction sesuai PRD Kebutuhan Teknis
-mysqli_begin_transaction($koneksi);
-
-try {
-    // 1. Validasi stok alat & hitung total bayar
-    $total_bayar = 0;
-    $detail_insert = [];
-
-    foreach ($items as $item) {
-        $id_alat = (int)($item['id'] ?? 0);
-        $qty     = (int)($item['qty'] ?? 0);
-
-        if ($id_alat <= 0 || $qty <= 0) continue;
-
-        // Kunci baris alat (FOR UPDATE)
-        $q_alat = mysqli_query($koneksi, "SELECT * FROM alat WHERE ID_alat = $id_alat FOR UPDATE");
-        $alat = mysqli_fetch_assoc($q_alat);
-
-        if (!$alat) {
-            throw new Exception("Alat dengan ID #$id_alat tidak ditemukan.");
-        }
-
-        if ($qty > $alat['stok_total']) {
-            throw new Exception("Stok untuk " . $alat['nama_alat'] . " tidak mencukupi (sisa: " . $alat['stok_total'] . ").");
-        }
-
-        $subtotal = (float)$alat['harga_per_hari'] * $qty * $durasi;
-        $total_bayar += $subtotal;
-
-        $detail_insert[] = [
-            'id_alat'  => $id_alat,
-            'qty'      => $qty,
-            'subtotal' => $subtotal
-        ];
-
-        // Kurangi stok alat secara konsisten
-        $sisa_stok = $alat['stok_total'] - $qty;
-        mysqli_query($koneksi, "UPDATE alat SET stok_total = $sisa_stok WHERE ID_alat = $id_alat");
-    }
-
-    if (empty($detail_insert)) {
-        throw new Exception("Keranjang sewa tidak memiliki alat yang valid.");
-    }
-
-    // 2. Buat Kode Booking: PR-YYMM-XXX
-    $prefix = 'PR-' . date('ym') . '-';
-    $q_last = mysqli_query($koneksi, "SELECT Kode_booking FROM booking WHERE Kode_booking LIKE '$prefix%' ORDER BY ID_booking DESC LIMIT 1");
-    $last_num = 1;
-    if ($row_last = mysqli_fetch_assoc($q_last)) {
-        $last_code = $row_last['Kode_booking'];
-        $parts = explode('-', $last_code);
-        $last_num = ((int)end($parts)) + 1;
-    }
-    $kode_booking = $prefix . str_pad((string)$last_num, 3, '0', STR_PAD_LEFT);
-
-    // Batas bayar di toko: 24 jam dari sekarang
-    $batas_bayar = date('Y-m-d H:i:s', strtotime('+24 hours'));
-    $now = date('Y-m-d H:i:s');
-    $jaminan_esc = mysqli_real_escape_string($koneksi, $jaminan);
-
-    // 3. Insert ke tabel booking
-    $sql_booking = "INSERT INTO booking 
-        (Kode_booking, ID_user, Tanggal_Mulai, Tanggal_selesai, Durasi, Total_bayar, Jenis_Jaminan, Status, Batas_Bayar, Created_at)
-        VALUES 
-        ('$kode_booking', $user_id, '$start_date', '$end_date', $durasi, $total_bayar, '$jaminan_esc', 'menunggu_bayar', '$batas_bayar', '$now')";
-
-    if (!mysqli_query($koneksi, $sql_booking)) {
-        throw new Exception("Gagal membuat data booking: " . mysqli_error($koneksi));
-    }
-
-    $id_booking = mysqli_insert_id($koneksi);
-
-    // 4. Insert ke tabel detail_booking
-    foreach ($detail_insert as $d) {
-        $id_a = $d['id_alat'];
-        $q   = $d['qty'];
-        $sub = $d['subtotal'];
-        $sql_detail = "INSERT INTO detail_booking (ID_booking, ID_alat, jumlah, subtotal)
-                       VALUES ($id_booking, $id_a, $q, $sub)";
-        if (!mysqli_query($koneksi, $sql_detail)) {
-            throw new Exception("Gagal menyimpan detail booking: " . mysqli_error($koneksi));
-        }
-    }
-
-    // Commit transaksi
-    mysqli_commit($koneksi);
-
-    echo json_encode([
-        'success'      => true,
-        'kode_booking' => $kode_booking,
-        'id_booking'   => $id_booking,
-        'total'        => $total_bayar,
-        'message'      => 'Booking berhasil dibuat! Silakan bayar di toko dalam 24 jam.'
-    ]);
-} catch (Exception $e) {
-    mysqli_rollback($koneksi);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+if ($tanggal_mulai < $hari_ini) {
+  kembali_keranjang("Tanggal mulai tidak boleh sebelum hari ini.");
 }
+
+if ($waktu_selesai < $waktu_mulai) {
+  kembali_keranjang("Tanggal selesai harus sama atau setelah tanggal mulai.");
+}
+
+// jaminan hanya boleh KTM Asli, KTP Asli, atau SIM Asli
+if ($jenis_jaminan != "KTM Asli" && $jenis_jaminan != "KTP Asli" && $jenis_jaminan != "SIM Asli") {
+  kembali_keranjang("Jenis jaminan harus KTM Asli, KTP Asli, atau SIM Asli.");
+}
+
+$durasi = (int)(($waktu_selesai - $waktu_mulai) / 86400) + 1;
+
+// tahap 1: cek stok semua alat dulu dan hitung total bayar
+$total_bayar = 0;
+$daftar_alat = array();
+$ada_masalah = "";
+
+for ($i = 0; $i < count($_SESSION["keranjang"]); $i++) {
+  $id_alat = $_SESSION["keranjang"][$i]["id_alat"];
+  $jumlah = (int)$_SESSION["keranjang"][$i]["jumlah"];
+
+  if ($jumlah < 1) {
+    $ada_masalah = "Jumlah unit setiap alat minimal 1.";
+  }
+
+  $perintah = $koneksi->prepare("SELECT nama_alat, harga_per_hari, stok_total FROM alat WHERE ID_alat = ?");
+  $perintah->bind_param("i", $id_alat);
+  $perintah->execute();
+  // dikosongkan dulu supaya tidak terbaca nilai lama kalau baris tidak ditemukan
+  $nama_alat = "";
+  $harga_per_hari = 0;
+  $stok_total = 0;
+  $perintah->bind_result($nama_alat, $harga_per_hari, $stok_total);
+  $perintah->fetch();
+  $perintah->close();
+
+  if ($nama_alat == "") {
+    $ada_masalah = "Ada alat di keranjang yang sudah tidak tersedia.";
+  }
+
+  if ($jumlah > $stok_total) {
+    $ada_masalah = "Jumlah " . $nama_alat . " melebihi stok total.";
+  }
+
+  // stok sisa = stok_total dikurangi unit pada booking aktif yang bentrok tanggal
+  $cek_stok = $koneksi->prepare("SELECT a.stok_total - (
+                                   SELECT COALESCE(SUM(d.Jumlah), 0)
+                                   FROM detail_booking d
+                                   JOIN booking b ON d.ID_booking = b.ID_booking
+                                   WHERE d.ID_alat = a.ID_alat
+                                     AND b.Status IN ('menunggu_bayar', 'dibayar', 'diambil')
+                                     AND b.Tanggal_Mulai <= ?
+                                     AND b.Tanggal_selesai >= ?
+                                 ) AS sisa
+                                 FROM alat a WHERE a.ID_alat = ?");
+  $cek_stok->bind_param("ssi", $tanggal_selesai, $tanggal_mulai, $id_alat);
+  $cek_stok->execute();
+  $sisa = 0;
+  $cek_stok->bind_result($sisa);
+  $cek_stok->fetch();
+  $cek_stok->close();
+
+  // angka negatif tidak ditampilkan, dianggap stok habis
+  if ($sisa < 0) {
+    $sisa = 0;
+  }
+
+  if ($jumlah > $sisa) {
+    $ada_masalah = "Stok " . $nama_alat . " tidak cukup pada tanggal tersebut, sisa " . $sisa . " unit.";
+  }
+
+  $subtotal = $harga_per_hari * $jumlah * $durasi;
+  $total_bayar = $total_bayar + $subtotal;
+
+  $daftar_alat[] = array(
+    "id_alat" => $id_alat,
+    "jumlah" => $jumlah,
+    "harga_satuan" => $harga_per_hari,
+    "subtotal" => $subtotal
+  );
+}
+
+if ($ada_masalah != "") {
+  kembali_keranjang($ada_masalah);
+}
+
+// tahap 2: simpan booking, kode dibuat unik dari tanggal, jam, ID user, dan angka acak
+$id_user = (int)$_SESSION["id_user"];
+$angka_acak = rand(10, 99);
+$kode_booking = "PR-" . date("ymd") . "-" . date("His") . "-" . $id_user . "-" . $angka_acak;
+$batas_bayar = date("Y-m-d H:i:s", strtotime("+24 hours"));
+
+$simpan = $koneksi->prepare("INSERT INTO booking (Kode_booking, ID_user, Tanggal_Mulai, Tanggal_selesai, Durasi, Total_bayar, Jenis_Jaminan, Status, Batas_Bayar)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, 'menunggu_bayar', ?)");
+$simpan->bind_param("sissidss", $kode_booking, $id_user, $tanggal_mulai, $tanggal_selesai, $durasi, $total_bayar, $jenis_jaminan, $batas_bayar);
+
+if (!$simpan->execute()) {
+  $simpan->close();
+  kembali_keranjang("Booking gagal disimpan, silakan coba lagi.");
+}
+
+$id_booking = $koneksi->insert_id;
+$simpan->close();
+
+// tahap 3: simpan detail booking, kalau gagal hapus booking yang baru dibuat
+$gagal_detail = false;
+for ($i = 0; $i < count($daftar_alat); $i++) {
+  $id_alat = $daftar_alat[$i]["id_alat"];
+  $jumlah = $daftar_alat[$i]["jumlah"];
+  $harga_satuan = $daftar_alat[$i]["harga_satuan"];
+  $subtotal = $daftar_alat[$i]["subtotal"];
+
+  $detail = $koneksi->prepare("INSERT INTO detail_booking (ID_booking, ID_alat, Harga_Satuan, Jumlah, Subtotal) VALUES (?, ?, ?, ?, ?)");
+  $detail->bind_param("iidid", $id_booking, $id_alat, $harga_satuan, $jumlah, $subtotal);
+
+  if (!$detail->execute()) {
+    $gagal_detail = true;
+  }
+  $detail->close();
+}
+
+if ($gagal_detail) {
+  $hapus = $koneksi->prepare("DELETE FROM booking WHERE ID_booking = ?");
+  $hapus->bind_param("i", $id_booking);
+  $hapus->execute();
+  $hapus->close();
+  kembali_keranjang("Detail booking gagal disimpan, booking dibatalkan.");
+}
+
+// keranjang dikosongkan setelah booking berhasil
+$_SESSION["keranjang"] = array();
+
+header("Location: bukti_booking.php?ID_booking=" . $id_booking);
+exit();
