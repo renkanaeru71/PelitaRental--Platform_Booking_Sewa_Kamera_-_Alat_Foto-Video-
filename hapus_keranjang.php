@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "koneksi.php";
-include "cek_login.php";
+include "cek_penyewa.php";
 
 $id_alat = 0;
 if (isset($_POST["id_alat"])) {

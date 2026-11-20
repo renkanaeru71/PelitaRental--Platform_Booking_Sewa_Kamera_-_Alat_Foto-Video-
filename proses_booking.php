@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "koneksi.php";
-include "cek_login.php";
+include "cek_penyewa.php";
 include "kadaluarsa.php";
 
 
@@ -138,6 +138,15 @@ if ($ada_masalah != "") {
 
 // tahap 2: simpan booking, kode dibuat unik dari tanggal, jam, ID user, dan angka acak
 $id_user = (int)$_SESSION["id_user"];
+
+// lapis pengaman kedua: walaupun cek_penyewa.php sudah menolak admin,
+// penulisan ke tabel booking tetap dicek ulang di sini.
+if ($_SESSION["role"] != "penyewa") {
+  $_SESSION["pesan"] = "Hanya penyewa yang boleh membuat booking.";
+  $_SESSION["pesan_tipe"] = "danger";
+  header("Location: index.php");
+  exit();
+}
 $angka_acak = rand(10, 99);
 $kode_booking = "PR-" . date("ymd") . "-" . date("His") . "-" . $id_user . "-" . $angka_acak;
 $batas_bayar = date("Y-m-d H:i:s", strtotime("+24 hours"));
