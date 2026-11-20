@@ -3,6 +3,14 @@ session_start();
 include "koneksi.php";
 include "cek_login.php";
 
+// admin tidak boleh menyewa alat
+if (isset($_SESSION["role"]) && $_SESSION["role"] == "admin") {
+  $_SESSION["pesan"] = "Admin tidak dapat melakukan penyewaan alat.";
+  $_SESSION["pesan_tipe"] = "danger";
+  header("Location: index.php");
+  exit();
+}
+
 $judul = "Tambah Keranjang";
 $akar = "";
 

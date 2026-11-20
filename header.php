@@ -44,9 +44,11 @@ $halaman_ini = $_SERVER["REQUEST_URI"];
     </button>
     <div class="collapse navbar-collapse" id="menuUtama">
       <ul class="navbar-nav me-auto">
+        <?php if (!isset($_SESSION["role"]) || strtolower($_SESSION["role"]) != "admin") { ?>
         <li class="nav-item">
           <a class="nav-link" href="<?php echo $akar; ?>index.php">Katalog</a>
         </li>
+        <?php } ?>
         <?php if (isset($_SESSION["id_user"])) { ?>
           <?php if ($_SESSION["role"] == "penyewa") { ?>
             <li class="nav-item">

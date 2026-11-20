@@ -39,6 +39,7 @@ if ($hasil->num_rows == 0) {
           <p>Stok total: <?php echo $alat["stok_total"]; ?> unit</p>
           <p class="text-body-secondary small">Sisa stok pada tanggal tertentu bisa dilihat di halaman keranjang setelah alat dimasukkan.</p>
 
+          <?php if (!isset($_SESSION["role"]) || $_SESSION["role"] != "admin") { ?>
           <form action="tambah_keranjang.php" method="post" class="row g-2 align-items-end">
             <input type="hidden" name="id_alat" value="<?php echo $alat["ID_alat"]; ?>">
             <div class="col-auto">
@@ -49,6 +50,7 @@ if ($hasil->num_rows == 0) {
               <button type="submit" class="btn btn-primary">Tambah ke Keranjang</button>
             </div>
           </form>
+          <?php } ?>
         </div>
       </div>
     </div>

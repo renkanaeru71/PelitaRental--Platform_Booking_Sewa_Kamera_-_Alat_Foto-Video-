@@ -86,11 +86,13 @@ while ($alat = $hasil->fetch_assoc()) {
         <p class="harga mb-1">Rp <?php echo number_format($alat["harga_per_hari"], 0, ",", "."); ?> / hari</p>
         <p class="small mb-3">Stok total: <?php echo $alat["stok_total"]; ?> unit</p>
         <a href="detail.php?ID_alat=<?php echo $alat["ID_alat"]; ?>" class="btn btn-outline-primary btn-sm">Lihat Detail</a>
+        <?php if (!isset($_SESSION["role"]) || $_SESSION["role"] != "admin") { ?>
         <form action="tambah_keranjang.php" method="post" class="d-inline">
           <input type="hidden" name="id_alat" value="<?php echo $alat["ID_alat"]; ?>">
           <input type="hidden" name="jumlah" value="1">
           <button type="submit" class="btn btn-primary btn-sm">Tambah</button>
         </form>
+        <?php } ?>
       </div>
     </div>
   </div>

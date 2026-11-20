@@ -4,6 +4,14 @@ include "koneksi.php";
 include "cek_login.php";
 include "kadaluarsa.php";
 
+// admin tidak boleh menyewa alat
+if (isset($_SESSION["role"]) && $_SESSION["role"] == "admin") {
+  $_SESSION["pesan"] = "Admin tidak dapat melakukan penyewaan alat.";
+  $_SESSION["pesan_tipe"] = "danger";
+  header("Location: index.php");
+  exit();
+}
+
 
 $tanggal_mulai = "";
 if (isset($_POST["tanggal_mulai"])) {
