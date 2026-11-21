@@ -22,14 +22,16 @@ if (isset($_POST["password"])) {
 if ($nama == "" || $email == "" || $no_hp == "" || $password == "") {
   $_SESSION["pesan"] = "Semua kolom wajib diisi.";
   $_SESSION["pesan_tipe"] = "danger";
-  header("Location: register.php");
+  $_SESSION["tab"] = "register";
+  header("Location: login.php");
   exit();
 }
 
 if (strlen($password) < 6) {
   $_SESSION["pesan"] = "Password minimal 6 karakter.";
   $_SESSION["pesan_tipe"] = "danger";
-  header("Location: register.php");
+  $_SESSION["tab"] = "register";
+  header("Location: login.php");
   exit();
 }
 
@@ -42,7 +44,8 @@ if ($cek->fetch()) {
   $cek->close();
   $_SESSION["pesan"] = "Email sudah terdaftar, silakan pakai email lain.";
   $_SESSION["pesan_tipe"] = "danger";
-  header("Location: register.php");
+  $_SESSION["tab"] = "register";
+  header("Location: login.php");
   exit();
 }
 $cek->close();
@@ -55,6 +58,7 @@ $simpan->bind_param("ssss", $nama, $email, $password_hash, $no_hp);
 if ($simpan->execute()) {
   $_SESSION["pesan"] = "Pendaftaran berhasil, silakan login.";
   $_SESSION["pesan_tipe"] = "success";
+  $_SESSION["tab"] = "login";
   $simpan->close();
   header("Location: login.php");
   exit();
@@ -63,5 +67,6 @@ if ($simpan->execute()) {
 $simpan->close();
 $_SESSION["pesan"] = "Pendaftaran gagal, silakan coba lagi.";
 $_SESSION["pesan_tipe"] = "danger";
-header("Location: register.php");
+$_SESSION["tab"] = "register";
+header("Location: login.php");
 exit();
