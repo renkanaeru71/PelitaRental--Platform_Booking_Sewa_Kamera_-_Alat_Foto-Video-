@@ -95,7 +95,7 @@ $halaman_ini = $_SERVER["REQUEST_URI"];
           </li>
         <?php } else { ?>
           <li class="nav-item">
-            <a class="nav-link" href="<?php echo $akar; ?>login.php">Masuk</a>
+            <a class="nav-link" href="<?php echo $akar; ?>login.php">Login</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="<?php echo $akar; ?>register.php">Daftar</a>

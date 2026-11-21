@@ -36,7 +36,6 @@ include "header.php";
           </div>
           <button type="submit" class="btn btn-primary">Daftar</button>
         </form>
-        <p class="mt-3 mb-0">Sudah punya akun? <a href="login.php">Masuk di sini</a></p>
       </div>
     </div>
   </div>
