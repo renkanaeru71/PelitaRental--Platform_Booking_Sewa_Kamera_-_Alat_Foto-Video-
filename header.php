@@ -77,7 +77,7 @@ $halaman_ini = $_SERVER["REQUEST_URI"];
           <?php } ?>
         <?php } ?>
       </ul>
-      <ul class="navbar-nav">
+      <ul class="navbar-nav align-items-lg-center">
         <?php if (isset($_SESSION["id_user"])) { ?>
           <?php if ($_SESSION["role"] == "penyewa") { ?>
             <li class="nav-item">
@@ -99,11 +99,11 @@ $halaman_ini = $_SERVER["REQUEST_URI"];
             <a class="nav-link" href="<?php echo $akar; ?>register.php">Daftar</a>
           </li>
         <?php } ?>
-        <li class="nav-item">
-          <form action="<?php echo $akar; ?>ganti_tema.php" method="post" class="d-flex">
+        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+          <form action="<?php echo $akar; ?>ganti_tema.php" method="post" class="m-0">
             <input type="hidden" name="tema" value="<?php echo $tema_berikut; ?>">
             <input type="hidden" name="kembali" value="<?php echo htmlspecialchars($halaman_ini); ?>">
-            <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
               <?php if ($tema == "dark") { echo "Mode Terang"; } else { echo "Mode Gelap"; } ?>
             </button>
           </form>
