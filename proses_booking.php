@@ -146,7 +146,7 @@ if ($ada_masalah != "") {
 
 // tahap 2: simpan booking, kode dibuat unik dari tanggal, jam, ID user, dan angka acak
 $id_user = (int)$_SESSION["id_user"];
-$angka_acak = rand(10, 99);
+$angka_acak = rand(10, 98);
 $kode_booking = "PR-" . date("ymd") . "-" . date("His") . "-" . $id_user . "-" . $angka_acak;
 $batas_bayar = date("Y-m-d H:i:s", strtotime("+24 hours"));
 
